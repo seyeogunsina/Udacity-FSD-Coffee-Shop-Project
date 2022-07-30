@@ -29,12 +29,11 @@ db_drop_and_create_all()
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks', methods=['GET'])
-@requires_auth(permission='')
 def get_drinks():
-    drinks = Drink.query.order_by(Drink.title).all().short()
+    drinks = Drink.query.order_by(Drink.title).all()
     return jsonify({
         "success": True,
-        "drinks": drinks
+        "drinks": [drink.short() for drink in drinks]
     })
 
 '''
@@ -108,13 +107,28 @@ def unprocessable(error):
 
 '''
 
+
+
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
-
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
 
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    return jsonify({
+        "success": False,
+        "error": ex.status_code,
+        'message': ex.error
+    }), 401
