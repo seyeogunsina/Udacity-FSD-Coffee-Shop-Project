@@ -106,25 +106,18 @@ def create_drink(payload):
 def update_drinks(payload, id):
     error = False
     drink = Drink.query.get(id)
-    # print(drink)
     if not drink:
         abort(404)
     else:
         try:
-            print('check 1')
             body = request.get_json()
-            print('check 2')
             title = body.get('title')
-            print(title)
             recipe = body.get('recipe')
-            print(recipe)
             if title:
                 drink.title = title
             if recipe:
                 drink.recipe = json.dumps(recipe)
-            print('check 3')
             drink.update()
-            print('check 4')
             drinks = [drink.long()]
         except:
             db.session.rollback()
