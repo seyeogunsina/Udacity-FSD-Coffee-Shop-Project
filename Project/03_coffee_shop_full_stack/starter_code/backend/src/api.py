@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this funciton will add one
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -143,7 +143,29 @@ def update_drinks(payload, id):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks/<id>', methods=['DELETE'])
+@requires_auth(permission='delete:drinks')
+def delete_drink(payload, id):
+    error = False
+    drink = Drink.query.get(id)
+    if not drink:
+        abort(404)
+    else:
+        try:
+            drink.delete()
+        except:
+            db.session.rollback()
+            error=True
+        finally:
+            db.session.close()
+    
+    if error:
+        abort(422)
+    else:
+        return jsonify({
+            "success": True,
+            "delete": id
+        })
 
 # Error Handling
 '''
@@ -195,4 +217,4 @@ def handle_auth_error(ex):
         "success": False,
         "error": ex.status_code,
         'message': ex.error
-    }), 401
+    }), ex.status_code
